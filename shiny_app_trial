@@ -1,0 +1,45 @@
+#load libraries
+library(shiny)
+library(leaflet)
+library(dplyr)
+library(leaflet.extras)
+library(dt)
+
+server <- function(input, output) {
+  #data <- read.csv("https://gishubdata.nd.gov/sites/default/files/NDHUB.AirportRunways.csv")
+  flight_points <- read.csv("/class/datamine/data/flights/2006.csv")
+  flight_points <- data.frame(flight_points)
+  flight_points$Latitude <- as.numeric(flight_points$Latitude)
+  flight_points$Longitude <- as.numeric(flight_points$Longitude)
+  flight_points =filter(flight_points, Latitude != "NA")
+  flight_points =filter(flight_points, Longitude != "NA")
+  flight_points =filter(flight_points, Tail_Num != "NA")
+  
+  #pop up label 
+  flight_points <- mutate(flight_points, cntnt = paste0('<strong>Tailnumber: </strong>', TAIL_NUM,
+                                                        '<br><strong>Elapsed Time: </strong>', Elapsed_time,
+                                                        '<br><strong>Destination: </strong>', destination))
+  }
+color_palatte <- colorFactor(color_palatte = c("#1b9e77", "#d95f02"), domain = c("Government", "Commericial"))
+
+output$flight_points <- renderLeaflet({
+  leaflet(flight_points) %>% 
+    addCircles(lng = ~Longitude, lat = ~Latitude) %>% 
+    addTiles() %>%
+    addCircleMarkers(data = flight_points, lat =  ~Latitude, lng =~Longitude, 
+                     radius = 3, popup = ~as.character(cntnt), 
+                     color = ~color_palatte(Header),
+                     stroke = FALSE, fillOpacity = 0.8)%>%
+    #addLegend(pal=pal, values=bflight_points$,opacity=1, na.label = "Not Available")%>%
+    addEasyButton(easyButton(
+      icon="fa-crosshairs", title="ME",
+      onClick=JS("function(btn, map){ map.locate({setView: true}); }")))
+})
+
+# output$data <-DT::renderDataTable(datatable(
+
+ui <- fluidPage("Engine Locations", id="main",
+           tabPanel("Map", leafletOutput("flight_points", height=1000)),
+           tabPanel("Data", DT::dataTableOutput("data")))
+
+shinyApp(ui, server)
