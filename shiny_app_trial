@@ -7,6 +7,7 @@ library(dt)
 
 server <- function(input, output) {
   #data <- read.csv("https://gishubdata.nd.gov/sites/default/files/NDHUB.AirportRunways.csv")
+  #add column headers and correct csv file 
   flight_points <- read.csv("/class/datamine/data/flights/2006.csv")
   flight_points <- data.frame(flight_points)
   flight_points$Latitude <- as.numeric(flight_points$Latitude)
@@ -15,7 +16,7 @@ server <- function(input, output) {
   flight_points =filter(flight_points, Longitude != "NA")
   flight_points =filter(flight_points, Tail_Num != "NA")
   
-  #pop up label 
+  #pop up label                                                                          #add comlumn names here
   flight_points <- mutate(flight_points, cntnt = paste0('<strong>Tailnumber: </strong>', TAIL_NUM,
                                                         '<br><strong>Elapsed Time: </strong>', Elapsed_time,
                                                         '<br><strong>Destination: </strong>', destination))
