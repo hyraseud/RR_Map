@@ -3,25 +3,40 @@ library(shiny)
 library(leaflet)
 library(dplyr)
 library(leaflet.extras)
-library(dt)
+library(DT)
+
+#resources used: 
+#
+# 
+
 
 server <- function(input, output) {
-  #data <- read.csv("https://gishubdata.nd.gov/sites/default/files/NDHUB.AirportRunways.csv")
   #add column headers and correct csv file 
-  flight_points <- read.csv("/class/datamine/data/flights/2006.csv")
-  flight_points <- data.frame(flight_points)
-  flight_points$Latitude <- as.numeric(flight_points$Latitude)
-  flight_points$Longitude <- as.numeric(flight_points$Longitude)
+  flight_file <- read.csv("/class/datamine/data/corporate/rolls-royce/n61uv4qp7lt6t4yjn00pvf7c6zrqvx4h/Merged_Data/")
+  flight_points <- data.frame(flight_file)
+  flight_points$Latitude <- as.numeric(flight_points$origin_lat)
+  flight_points$Longitude <- as.numeric(flight_points$origin_long)
+  flight_points$tail_number <- as.name(flight_points$Tail_num)
   flight_points =filter(flight_points, Latitude != "NA")
   flight_points =filter(flight_points, Longitude != "NA")
-  flight_points =filter(flight_points, Tail_Num != "NA")
+  flight_points =filter(flight_points, flight_points$tail_number != "NA")
+  cbind(flight_points, destination)
+  
+  
+  latnlong <- main_sub_t %>% 
+    select(flight_file$dest_lat, flgiht_file$dest_long) %>% 
+    unique() %>% 
+    mutate(index=row_number())
+  
   
   #pop up label                                                                          #add comlumn names here
   flight_points <- mutate(flight_points, cntnt = paste0('<strong>Tailnumber: </strong>', TAIL_NUM,
-                                                        '<br><strong>Elapsed Time: </strong>', Elapsed_time,
-                                                        '<br><strong>Destination: </strong>', destination))
+                                                        '<br><strong>Date: </strong>', correct_correct_date,
+                                                        '<br><strong>Elapsed Time: </strong>', correct_correct_time,
+                                                        #'<br><strong>Destination: </strong>'
+                                                        '<br><strong>Engine Num: </strong>', engnum))
   }
-color_palatte <- colorFactor(color_palatte = c("#1b9e77", "#d95f02"), domain = c("Government", "Commericial"))
+#color_palatte <- colorFactor(color_palatte = c("#1b9e77", "#d95f02"), domain = c("Government", "Commericial"))
 
 output$flight_points <- renderLeaflet({
   leaflet(flight_points) %>% 
@@ -29,15 +44,16 @@ output$flight_points <- renderLeaflet({
     addTiles() %>%
     addCircleMarkers(data = flight_points, lat =  ~Latitude, lng =~Longitude, 
                      radius = 3, popup = ~as.character(cntnt), 
-                     color = ~color_palatte(Header),
+                     #color = ~color_palatte(Header),
                      stroke = FALSE, fillOpacity = 0.8)%>%
     #addLegend(pal=pal, values=bflight_points$,opacity=1, na.label = "Not Available")%>%
+    #addSearchBar Function
     addEasyButton(easyButton(
       icon="fa-crosshairs", title="ME",
       onClick=JS("function(btn, map){ map.locate({setView: true}); }")))
 })
 
-# output$data <-DT::renderDataTable(datatable(
+#output$data <-DT::renderDataTable(datatable(
 
 ui <- fluidPage("Engine Locations", id="main",
            tabPanel("Map", leafletOutput("flight_points", height=1000)),
